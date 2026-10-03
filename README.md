@@ -44,8 +44,33 @@ The Kubernetes Service uses a label selector to route traffic to the NGINX Pods 
 kubernetes-nginx-platform-lab/
 ├── README.md
 └── manifests/
+    ├── namespace.yaml   
     ├── deployment.yaml
     └── service.yaml
+```
+
+## Kubernetes Namespace
+
+The application resources are deployed into a dedicated `nginx-platform` namespace to logically isolate the project from resources in the default namespace.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-platform
+```
+
+Create the namespace:
+
+```bash
+kubectl apply -f manifests/namespace.yaml
+```
+
+Verify the namespace:
+
+```bash
+kubectl get namespaces
+kubectl get all -n nginx-platform
 ```
 
 ## Kubernetes Deployment
@@ -57,6 +82,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
+  namespace: nginx-platform
 spec:
   replicas: 3
   selector:
@@ -81,8 +107,8 @@ kubectl apply -f manifests/deployment.yaml
 Verify the Deployment and Pods:
 
 ```bash
-kubectl get deployments
-kubectl get pods
+kubectl get deployments -n nginx-platform
+kubectl get pods -n nginx-platform
 ```
 
 ## Kubernetes Service
@@ -94,6 +120,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-deployment
+  namespace: nginx-platform
 spec:
   type: NodePort
   selector:
@@ -112,7 +139,7 @@ kubectl apply -f manifests/service.yaml
 Verify the Service:
 
 ```bash
-kubectl get services
+kubectl get services -n nginx-platform
 ```
 
 ## Accessing the Application
@@ -120,7 +147,7 @@ kubectl get services
 When running the cluster with Minikube:
 
 ```bash
-minikube service nginx-deployment --url
+minikube service nginx-deployment -n nginx-platform --url
 ```
 
 Open the generated URL in a browser to access the NGINX application.
@@ -130,29 +157,29 @@ Open the generated URL in a browser to access the NGINX application.
 Inspect Kubernetes resources:
 
 ```bash
-kubectl get pods
-kubectl get deployments
-kubectl get services
-kubectl describe deployment nginx-deployment
-kubectl describe service nginx-deployment
+kubectl get pods -n nginx-platform
+kubectl get deployments -n nginx-platform
+kubectl get services -n nginx-platform
+kubectl describe deployment nginx-deployment -n nginx-platform
+kubectl describe service nginx-deployment -n nginx-platform
 ```
 
 Inspect Pod logs:
 
 ```bash
-kubectl logs <pod-name>
+kubectl logs <pod-name> -n nginx-platform
 ```
 
 Scale the application:
 
 ```bash
-kubectl scale deployment nginx-deployment --replicas=5
+kubectl scale deployment nginx-deployment --replicas=5 -n nginx-platform
 ```
 
 Verify scaling:
 
 ```bash
-kubectl get pods
+kubectl get pods -n nginx-platform
 ```
 
 ## Skills Demonstrated
@@ -164,6 +191,7 @@ This project demonstrates practical experience with:
 - kubectl
 - NGINX
 - Kubernetes Deployments
+- Kubernetes Namespaces
 - Kubernetes Services
 - Pod lifecycle management
 - Application scaling
@@ -183,7 +211,6 @@ Planned improvements include:
 - Secrets
 - Persistent Volumes
 - Ingress
-- Namespaces
 - Resource requests and limits
 - Liveness and readiness probes
 - Rolling updates and rollbacks
