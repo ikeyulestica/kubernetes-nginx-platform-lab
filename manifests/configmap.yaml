@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html-config
+  namespace: nginx-platform
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Kubernetes NGINX Platform Lab</title>
+    </head>
+    <body>
+      <h1>Welcome to My Kubernetes Platform!</h1>
+      <h2>NGINX running on Kubernetes</h2>
+      <p>Deployed using Minikube and Docker.</p>
+      <p>Configuration managed using Kubernetes ConfigMap.</p>
+    </body>
+    </html>

@@ -14,6 +14,9 @@ The project covers:
 - NodePort service exposure
 - Label selectors
 - Declarative YAML configuration
+- Kubernetes ConfigMaps and configuration management
+- ConfigMap-backed volumes and container volume mounts
+- Custom NGINX webpage deployment without rebuilding the container image
 - kubectl troubleshooting and inspection
 - Application connectivity testing
 - Git version control and GitHub project management
@@ -21,19 +24,29 @@ The project covers:
 ## Architecture
 
 ```text
-                    User / Browser
-                          |
-                          |
-                    NodePort Service
-                       Port 80
-                          |
-                  nginx-deployment
-                          |
-              +-----------+-----------+
-              |           |           |
-           NGINX Pod   NGINX Pod   NGINX Pod
-              |
-          nginx:latest
+                 User / Browser
+                       |
+                       v
+                NodePort Service
+                    Port 80
+                       |
+                       v
+                nginx-deployment
+                       |
+            +----------+----------+
+            |          |          |
+         NGINX Pod  NGINX Pod  NGINX Pod
+            |          |          |
+            +----------+----------+
+                       |
+                       v
+              ConfigMap Volume
+                       |
+                       v
+             nginx-html-config
+                       |
+                       v
+                   index.html
 ```
 
 The Kubernetes Service uses a label selector to route traffic to the NGINX Pods managed by the Deployment.
@@ -44,7 +57,8 @@ The Kubernetes Service uses a label selector to route traffic to the NGINX Pods 
 kubernetes-nginx-platform-lab/
 ├── README.md
 └── manifests/
-    ├── namespace.yaml   
+    ├── namespace.yaml
+    ├── configmap.yaml
     ├── deployment.yaml
     └── service.yaml
 ```
@@ -72,6 +86,29 @@ Verify the namespace:
 kubectl get namespaces
 kubectl get all -n nginx-platform
 ```
+## Kubernetes ConfigMap
+
+The application uses a Kubernetes ConfigMap to manage a custom NGINX webpage separately from the container image.
+
+The ConfigMap `nginx-html-config` stores an `index.html` file in the `nginx-platform` namespace.
+
+Create the ConfigMap:
+
+```bash
+kubectl apply --dry-run=client -f manifests/configmap.yaml
+kubectl apply -f manifests/configmap.yaml
+```
+
+Verify the ConfigMap:
+
+```bash
+kubectl get configmaps -n nginx-platform
+kubectl describe configmap nginx-html-config -n nginx-platform
+```
+
+The NGINX Deployment mounts the ConfigMap as a read-only volume at `/usr/share/nginx/html`. This allows NGINX to serve the custom webpage without rebuilding the container image.
+
+The integration was tested by successfully rolling out three updated NGINX Pods and accessing the custom webpage through the Minikube NodePort Service.
 
 ## Kubernetes Deployment
 
@@ -96,6 +133,14 @@ spec:
       containers:
         - name: nginx
           image: nginx
+          volumeMounts:
+            - name: nginx-html-volume
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: nginx-html-volume
+          configMap:
+            name: nginx-html-config
 ```
 
 Apply the Deployment:
@@ -192,6 +237,9 @@ This project demonstrates practical experience with:
 - NGINX
 - Kubernetes Deployments
 - Kubernetes Namespaces
+- Kubernetes ConfigMaps
+- ConfigMap-backed volumes and volume mounts
+- Kubernetes rolling Deployment updates
 - Kubernetes Services
 - Pod lifecycle management
 - Application scaling
@@ -207,7 +255,6 @@ This lab will continue to evolve as I expand my Kubernetes and platform engineer
 
 Planned improvements include:
 
-- ConfigMaps
 - Secrets
 - Persistent Volumes
 - Ingress

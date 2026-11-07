@@ -16,3 +16,11 @@ spec:
       containers:
         - name: nginx
           image: nginx
+          volumeMounts:
+            - name: nginx-html-volume
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: nginx-html-volume
+          configMap:
+            name: nginx-html-config
