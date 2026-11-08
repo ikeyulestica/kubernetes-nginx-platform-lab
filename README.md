@@ -133,6 +133,13 @@ spec:
       containers:
         - name: nginx
           image: nginx
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
           volumeMounts:
             - name: nginx-html-volume
               mountPath: /usr/share/nginx/html
@@ -249,6 +256,102 @@ This project demonstrates practical experience with:
 - GitHub
 - Visual Studio Code
 
+## CPU and Memory Resource Management
+
+### Overview
+
+Configured CPU and memory requests and limits for the NGINX Deployment to improve resource allocation, scheduling, and workload stability.
+
+
+### Resource Configuration
+
+Each NGINX container uses the following resources:
+
+| Resource | Request | Limit |
+|----------|---------|-------|
+| CPU | 100m | 250m |
+| Memory | 64Mi | 128Mi |
+
+With 3 NGINX replicas, the Deployment requests a total of 300m CPU and 192Mi memory.
+
+
+### Kubernetes Deployment Configuration
+
+The following resource settings are defined in `manifests/deployment.yaml`:
+
+```yaml
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "250m"
+    memory: "128Mi"
+```
+
+
+### Deployment and Verification
+
+Validate the Kubernetes manifest:
+
+```powershell
+kubectl apply --dry-run=client --validate=true -f .\manifests\deployment.yaml
+```
+
+Apply the updated Deployment:
+
+```powershell
+kubectl apply -f .\manifests\deployment.yaml
+```
+
+Verify the rolling update:
+
+```powershell
+kubectl rollout status deployment/nginx-deployment -n nginx-platform
+```
+
+Check the running Pods:
+
+```powershell
+kubectl get pods -n nginx-platform -o wide
+```
+
+Inspect the CPU and memory configuration:
+
+```powershell
+kubectl describe deployment nginx-deployment -n nginx-platform
+```
+
+
+### Validation Results
+
+The CPU and memory resource configuration was successfully deployed and verified.
+
+- Deployment rollout completed successfully.
+- All 3 NGINX Pods were Running and Ready (1/1).
+- All 3 Pods reported zero container restarts.
+- CPU request: 100m per container.
+- CPU limit: 250m per container.
+- Memory request: 64Mi per container.
+- Memory limit: 128Mi per container.
+- Kubernetes assigned the Burstable QoS class.
+- The ConfigMap volume remained mounted successfully.
+- The custom NGINX webpage remained accessible through the NodePort Service.
+
+
+### Key Learning Outcomes
+
+This milestone demonstrates practical Kubernetes resource management skills:
+
+- Understanding the difference between CPU and memory requests and limits.
+- Configuring container resource requirements in Kubernetes Deployment YAML.
+- Validating Kubernetes manifests before deployment.
+- Performing rolling updates without intentionally stopping the application.
+- Inspecting running Pods and verifying their resource configuration.
+- Understanding Kubernetes Burstable QoS classification.
+- Verifying application accessibility after infrastructure changes.
+
+
 ## Future Improvements
 
 This lab will continue to evolve as I expand my Kubernetes and platform engineering skills.
@@ -258,7 +361,6 @@ Planned improvements include:
 - Secrets
 - Persistent Volumes
 - Ingress
-- Resource requests and limits
 - Liveness and readiness probes
 - Rolling updates and rollbacks
 - Helm

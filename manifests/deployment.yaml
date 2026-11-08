@@ -16,6 +16,13 @@ spec:
       containers:
         - name: nginx
           image: nginx
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
           volumeMounts:
             - name: nginx-html-volume
               mountPath: /usr/share/nginx/html
